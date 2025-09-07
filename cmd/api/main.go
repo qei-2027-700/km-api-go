@@ -1,3 +1,28 @@
+// Package main KM API Go
+//
+// @title KM API
+// @version 1.0
+// @description KM API for Go backend application
+// @termsOfService http://swagger.io/terms/
+//
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io
+//
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+//
+// @host localhost:8080
+// @BasePath /api/v1
+//
+// @schemes http https
+//
+// @tag.name users
+// @tag.description ユーザー関連のAPI
+//
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 package main
 
 import (
@@ -13,6 +38,9 @@ import (
 
 	"km-api-go/internal/infra"
 	"km-api-go/server"
+	
+	// Swagger docs
+	_ "km-api-go/swagger/src"
 )
 
 func main() {

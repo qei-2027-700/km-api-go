@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	echoSwagger "github.com/swaggo/echo-swagger"
 	"gorm.io/gorm"
 
 	"km-api-go/internal/helper"
@@ -35,6 +36,9 @@ func SetupRouter(db *gorm.DB) *echo.Echo {
 	apiV1.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
 	})
+
+	// Swagger UI
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	// ユーザー関連
 	usersGroup := apiV1.Group("/users")

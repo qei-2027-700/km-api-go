@@ -47,6 +47,7 @@ tasks:
       - echo "Cleaning up generated files..."
       - rm -rf internal/*/mocks
       - rm -rf internal/*/*/mocks
+      - rm -rf swagger/src
       - rm -f coverage.out coverage.html
       - echo "Cleanup complete!"
 
@@ -61,3 +62,38 @@ tasks:
     deps: [mocks]
     cmds:
       - task test-coverage
+
+  docs:
+    desc: Swaggerドキュメント生成
+    cmds:
+      - echo "Generating Swagger documentation..."
+      - mkdir -p swagger/src
+      - swag init -g cmd/api/main.go -o swagger/src
+      - echo "Documentation generated at /swagger/src"
+
+  docs-serve:
+    desc: ドキュメント生成してサーバー起動
+    deps: [docs]
+    cmds:
+      - echo "Starting server with updated documentation..."
+      - GO_ENV=dev go run cmd/api/main.go
+
+  format:
+    desc: コードフォーマット
+    cmds:
+      - echo "Formatting code..."
+      - go fmt ./...
+      - echo "Code formatted successfully"
+
+  lint:
+    desc: コード静的解析
+    cmds:
+      - echo "Running linter..."
+      - go vet ./...
+      - echo "Linting completed"
+
+  dev:
+    desc: 開発用 - ドキュメント生成とサーバー起動
+    deps: [docs]
+    cmds:
+      - task docs-serve

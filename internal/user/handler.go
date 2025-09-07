@@ -16,6 +16,17 @@ func NewUserHandler(usecase UserUsecase) *UserHandler {
 	return &UserHandler{usecase: usecase}
 }
 
+// CreateUser godoc
+// @Summary ユーザー作成
+// @Description 新しいユーザーを作成します
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body CreateUserRequest true "ユーザー情報"
+// @Success 201 {object} helper.APIResponse{data=UserResponse}
+// @Failure 400 {object} helper.APIResponse
+// @Failure 500 {object} helper.APIResponse
+// @Router /users [post]
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	var req CreateUserRequest
 	if err := c.Bind(&req); err != nil {

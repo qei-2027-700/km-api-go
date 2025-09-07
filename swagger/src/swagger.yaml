@@ -1,0 +1,140 @@
+basePath: /api/v1
+definitions:
+  helper.APIError:
+    description: APIエラーの詳細情報
+    properties:
+      code:
+        allOf:
+        - $ref: '#/definitions/helper.ErrorCode'
+        description: エラーコード
+        example: VALIDATION_ERROR
+      details:
+        description: エラー詳細
+        type: string
+      message:
+        description: エラーメッセージ
+        example: バリデーションエラーが発生しました
+        type: string
+    type: object
+  helper.APIResponse:
+    description: 統一されたAPIレスポンス形式
+    properties:
+      data:
+        description: レスポンスデータ
+      error:
+        allOf:
+        - $ref: '#/definitions/helper.APIError'
+        description: エラー情報
+      message:
+        description: メッセージ
+        example: 操作が成功しました
+        type: string
+      success:
+        description: 成功フラグ
+        example: true
+        type: boolean
+    type: object
+  helper.ErrorCode:
+    enum:
+    - VALIDATION_ERROR
+    - NOT_FOUND
+    - ALREADY_EXISTS
+    - UNAUTHORIZED
+    - FORBIDDEN
+    - INTERNAL_ERROR
+    - DATABASE_ERROR
+    - EXTERNAL_API_ERROR
+    type: string
+    x-enum-varnames:
+    - ErrorCodeValidation
+    - ErrorCodeNotFound
+    - ErrorCodeAlreadyExists
+    - ErrorCodeUnauthorized
+    - ErrorCodeForbidden
+    - ErrorCodeInternalError
+    - ErrorCodeDatabaseError
+    - ErrorCodeExternalAPI
+  user.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  user.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: KM API for Go backend application
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: KM API
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: 新しいユーザーを作成します
+      parameters:
+      - description: ユーザー情報
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/user.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/helper.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/user.UserResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/helper.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/helper.APIResponse'
+      summary: ユーザー作成
+      tags:
+      - users
+schemes:
+- http
+- https
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: ユーザー関連のAPI
+  name: users
