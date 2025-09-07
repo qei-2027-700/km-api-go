@@ -1,0 +1,63 @@
+version: '3'
+
+tasks:
+  mocks:
+    desc: モックファイルを生成
+    cmds:
+      - echo "Generating mocks..."
+      - mkdir -p internal/user/repository/mocks
+      - mkdir -p internal/user/mocks
+      - mkdir -p internal/company/repository/mocks
+      - mkdir -p internal/company/mocks
+      - mockgen -source=internal/user/repository/interface.go -destination=internal/user/repository/mocks/user_repository_mock.go -package=mocks
+      - mockgen -source=internal/user/usecase.go -destination=internal/user/mocks/user_usecase_mock.go -package=mocks
+      - |
+        if [ -f internal/company/repository/interface.go ]; then
+          mockgen -source=internal/company/repository/interface.go -destination=internal/company/repository/mocks/company_repository_mock.go -package=mocks
+        fi
+      - |
+        if [ -f internal/company/usecase.go ]; then
+          mockgen -source=internal/company/usecase.go -destination=internal/company/mocks/company_usecase_mock.go -package=mocks
+        fi
+      - echo "Mocks generated successfully!"
+
+  test:
+    desc: テスト実行
+    cmds:
+      - echo "Running tests..."
+      - go test -v ./... | grep -v "\[no test files\]"
+
+  test-verbose:
+    desc: 詳細なテスト実行
+    cmds:
+      - echo "Running tests with verbose output..."
+      - go test -v ./... | grep -v "\[no test files\]"
+
+  test-coverage:
+    desc: カバレッジ付きでテスト実行
+    cmds:
+      - echo "Running tests with coverage..."
+      - go test -v -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out -o coverage.html
+      - echo "Coverage report generated at coverage.html"
+
+  clean:
+    desc: 生成ファイルのクリーンアップ
+    cmds:
+      - echo "Cleaning up generated files..."
+      - rm -rf internal/*/mocks
+      - rm -rf internal/*/*/mocks
+      - rm -f coverage.out coverage.html
+      - echo "Cleanup complete!"
+
+  dev-test:
+    desc: 開発用 - モック生成とテスト実行
+    deps: [mocks]
+    cmds:
+      - task test
+
+  ci-test:
+    desc: CI用 - モック生成とカバレッジ付きテスト
+    deps: [mocks]
+    cmds:
+      - task test-coverage
