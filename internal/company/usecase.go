@@ -3,18 +3,16 @@ package company
 import (
 	"fmt"
 
+	"km-api-go/internal/company/repository"
 	"km-api-go/internal/domain"
 	"km-api-go/internal/helper"
-	"km-api-go/internal/company/repository"
 )
 
-// CompanyUsecase 会社のビジネスロジックを処理
 type CompanyUsecase struct {
 	companyRepo     repository.CompanyRepository
 	companyUserRepo repository.CompanyUserRepository
 }
 
-// NewCompanyUsecase 会社ユースケースのコンストラクタ
 func NewCompanyUsecase(companyRepo repository.CompanyRepository, companyUserRepo repository.CompanyUserRepository) *CompanyUsecase {
 	return &CompanyUsecase{
 		companyRepo:     companyRepo,
@@ -22,7 +20,6 @@ func NewCompanyUsecase(companyRepo repository.CompanyRepository, companyUserRepo
 	}
 }
 
-// GetAllCompanies 全会社を取得
 func (uc *CompanyUsecase) GetAllCompanies() ([]domain.Company, error) {
 	companies, err := uc.companyRepo.GetAll()
 	if err != nil {
@@ -38,7 +35,6 @@ func (uc *CompanyUsecase) GetAllCompanies() ([]domain.Company, error) {
 	return responseCompanies, nil
 }
 
-// GetCompanyByID IDで会社を取得
 func (uc *CompanyUsecase) GetCompanyByID(id uint) (*domain.Company, error) {
 	if id == 0 {
 		return nil, fmt.Errorf("invalid company id: %d", id)
@@ -49,12 +45,10 @@ func (uc *CompanyUsecase) GetCompanyByID(id uint) (*domain.Company, error) {
 		return nil, fmt.Errorf("failed to get company by id %d: %w", id, err)
 	}
 
-	// レスポンス用データに変換
 	responseCompany := company.ToResponseCompany()
 	return &responseCompany, nil
 }
 
-// CreateCompany 会社を作成
 func (uc *CompanyUsecase) CreateCompany(name, email, phone, address, website, description string) (*domain.Company, error) {
 	// 入力バリデーション
 	if name == "" {
@@ -73,7 +67,6 @@ func (uc *CompanyUsecase) CreateCompany(name, email, phone, address, website, de
 		return nil, fmt.Errorf("company with email %s already exists", email)
 	}
 
-	// 会社オブジェクト作成
 	company := &domain.Company{
 		Name:        name,
 		Email:       email,
@@ -83,22 +76,18 @@ func (uc *CompanyUsecase) CreateCompany(name, email, phone, address, website, de
 		Description: description,
 	}
 
-	// バリデーション
 	if !company.IsValidCompany() {
 		return nil, fmt.Errorf("invalid company data")
 	}
 
-	// リポジトリで保存
 	if err := uc.companyRepo.Create(company); err != nil {
 		return nil, fmt.Errorf("failed to create company: %w", err)
 	}
 
-	// レスポンス用データに変換
 	responseCompany := company.ToResponseCompany()
 	return &responseCompany, nil
 }
 
-// UpdateCompany 会社を更新
 func (uc *CompanyUsecase) UpdateCompany(id uint, name, email, phone, address, website, description string) (*domain.Company, error) {
 	// 入力バリデーション
 	if id == 0 {
@@ -111,13 +100,11 @@ func (uc *CompanyUsecase) UpdateCompany(id uint, name, email, phone, address, we
 		return nil, fmt.Errorf("email is required")
 	}
 
-	// 既存会社取得
 	existingCompany, err := uc.companyRepo.GetByID(id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get company for update: %w", err)
 	}
 
-	// メール変更時の重複チェック
 	if existingCompany.Email != email {
 		exists, err := uc.companyRepo.ExistsByEmail(email)
 		if err != nil {
@@ -128,7 +115,6 @@ func (uc *CompanyUsecase) UpdateCompany(id uint, name, email, phone, address, we
 		}
 	}
 
-	// 会社情報更新
 	existingCompany.Name = name
 	existingCompany.Email = email
 	existingCompany.Phone = phone
@@ -136,29 +122,23 @@ func (uc *CompanyUsecase) UpdateCompany(id uint, name, email, phone, address, we
 	existingCompany.Website = website
 	existingCompany.Description = description
 
-	// バリデーション
 	if !existingCompany.IsValidCompany() {
 		return nil, fmt.Errorf("invalid company data")
 	}
 
-	// リポジトリで更新
 	if err := uc.companyRepo.Update(existingCompany); err != nil {
 		return nil, fmt.Errorf("failed to update company: %w", err)
 	}
 
-	// レスポンス用データに変換
 	responseCompany := existingCompany.ToResponseCompany()
 	return &responseCompany, nil
 }
 
-// DeleteCompany 会社を削除
 func (uc *CompanyUsecase) DeleteCompany(id uint) error {
-	// 入力バリデーション
 	if id == 0 {
 		return fmt.Errorf("invalid company id: %d", id)
 	}
 
-	// 会社存在確認
 	exists, err := uc.companyRepo.Exists(id)
 	if err != nil {
 		return fmt.Errorf("failed to check company existence: %w", err)
@@ -175,7 +155,7 @@ func (uc *CompanyUsecase) DeleteCompany(id uint) error {
 	return nil
 }
 
-// GetCompaniesPaginated ページネーション付きで会社を取得
+// ページネーション付きで会社を取得
 func (uc *CompanyUsecase) GetCompaniesPaginated(page, limit int) ([]domain.Company, *helper.PaginationResponse, error) {
 	// ページネーションパラメータ正規化
 	paginationReq := &helper.PaginationRequest{
@@ -209,7 +189,6 @@ func (uc *CompanyUsecase) GetCompaniesPaginated(page, limit int) ([]domain.Compa
 	return responseCompanies, pagination, nil
 }
 
-// SearchCompanies 名前で会社を検索
 func (uc *CompanyUsecase) SearchCompanies(name string) ([]domain.Company, error) {
 	if name == "" {
 		return nil, fmt.Errorf("search name is required")
@@ -229,7 +208,6 @@ func (uc *CompanyUsecase) SearchCompanies(name string) ([]domain.Company, error)
 	return responseCompanies, nil
 }
 
-// AddUserToCompany ユーザーを会社に追加
 func (uc *CompanyUsecase) AddUserToCompany(userID, companyID uint, role string) (*domain.CompanyUser, error) {
 	// 入力バリデーション
 	if userID == 0 {
@@ -274,9 +252,7 @@ func (uc *CompanyUsecase) AddUserToCompany(userID, companyID uint, role string) 
 	return companyUser, nil
 }
 
-// UpdateUserRole ユーザーの役割を更新
 func (uc *CompanyUsecase) UpdateUserRole(userID, companyID uint, role string) (*domain.CompanyUser, error) {
-	// 入力バリデーション
 	if userID == 0 {
 		return nil, fmt.Errorf("invalid user id: %d", userID)
 	}
@@ -302,9 +278,7 @@ func (uc *CompanyUsecase) UpdateUserRole(userID, companyID uint, role string) (*
 	return companyUser, nil
 }
 
-// RemoveUserFromCompany ユーザーを会社から削除
 func (uc *CompanyUsecase) RemoveUserFromCompany(userID, companyID uint) error {
-	// 入力バリデーション
 	if userID == 0 {
 		return fmt.Errorf("invalid user id: %d", userID)
 	}
@@ -321,7 +295,6 @@ func (uc *CompanyUsecase) RemoveUserFromCompany(userID, companyID uint) error {
 		return fmt.Errorf("user %d is not associated with company %d", userID, companyID)
 	}
 
-	// 関係削除
 	if err := uc.companyUserRepo.Delete(userID, companyID); err != nil {
 		return fmt.Errorf("failed to remove user from company: %w", err)
 	}
@@ -329,7 +302,6 @@ func (uc *CompanyUsecase) RemoveUserFromCompany(userID, companyID uint) error {
 	return nil
 }
 
-// GetUsersByCompany 会社のユーザー一覧を取得
 func (uc *CompanyUsecase) GetUsersByCompany(companyID uint) ([]domain.CompanyUser, error) {
 	if companyID == 0 {
 		return nil, fmt.Errorf("invalid company id: %d", companyID)
@@ -352,7 +324,6 @@ func (uc *CompanyUsecase) GetUsersByCompany(companyID uint) ([]domain.CompanyUse
 	return companyUsers, nil
 }
 
-// GetCompaniesByUser ユーザーの会社一覧を取得
 func (uc *CompanyUsecase) GetCompaniesByUser(userID uint) ([]domain.CompanyUser, error) {
 	if userID == 0 {
 		return nil, fmt.Errorf("invalid user id: %d", userID)

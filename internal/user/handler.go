@@ -8,17 +8,14 @@ import (
 	"km-api-go/internal/helper"
 )
 
-// UserHandler はユーザー関連のHTTPリクエストを処理します
 type UserHandler struct {
 	usecase UserUsecase
 }
 
-// NewUserHandler は新しいUserHandlerを初期化します
 func NewUserHandler(usecase UserUsecase) *UserHandler {
 	return &UserHandler{usecase: usecase}
 }
 
-// CreateUser は新しいユーザーを作成します
 func (h *UserHandler) CreateUser(c echo.Context) error {
 	var req CreateUserRequest
 	if err := c.Bind(&req); err != nil {

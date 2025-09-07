@@ -10,13 +10,9 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 
-	"km-api-go/internal/helper"
 	"km-api-go/internal/infra"
-	"km-api-go/internal/user"
-	userRepo "km-api-go/internal/user/repository"
+	"km-api-go/server"
 )
 
 func main() {
@@ -25,36 +21,14 @@ func main() {
 		log.Println("No .env file found, using system environment variables")
 	}
 
-	// Echoインスタンス生成
-	e := echo.New()
-
-	// ミドルウェア設定
-	e.Use(middleware.Logger())
-	e.Use(middleware.Recover())
-	e.Use(middleware.CORS())
-
-	// カスタムバリデータ設定
-	e.Validator = helper.NewValidator()
-
 	// データベース接続
 	db, err := infra.InitDatabase()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 
-	// 依存関係の注入 (Dependency Injection)
-	userRepository := userRepo.NewUserRepository(db)
-	userUsecase := user.NewUserUsecase(userRepository)
-	userHandler := user.NewUserHandler(userUsecase)
-
-	// ルーティング
-	apiV1 := e.Group("/api/v1")
-	apiV1.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]string{"status": "ok"})
-	})
-
-	usersGroup := apiV1.Group("/users")
-	usersGroup.POST("", userHandler.CreateUser)
+	// ルーターのセットアップ
+	e := server.SetupRouter(db)
 
 	// サーバーの起動とグレースフルシャットダウン
 	go func() {
